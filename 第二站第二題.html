@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第二站第二題：電動機正反轉兼Y-Δ啟動附瞬時停電保護控制電路 互動模擬 (改進版)</title>
+    <style>
+        :root {
+            --bg-color: #1e1e2e;
+            --panel-bg: #2a2a3c;
+            --border-color: #444466;
+            --accent-blue: #00d2ff;
+            --accent-green: #00e676;
+            --accent-red: #ff5252;
+            --accent-yellow: #ffd700;
+            --text-main: #e0e0e0;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 { margin: 0 0 10px 0; font-size: 22px; color: var(--accent-blue); text-align: center; }
+        .subtitle { font-size: 14px; color: #8888aa; margin-bottom: 20px; text-align: center; }
+
+        .main-container { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; max-width: 1400px; width: 100%; }
+        .board-card { background-color: var(--panel-bg); border: 2px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); display: flex; flex-direction: column; align-items: center; }
+        .board-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #ffffff; border-bottom: 2px solid var(--accent-blue); padding-bottom: 5px; width: 100%; text-align: center; }
+
+        /* 器具板 Layout */
+        .appliance-board { width: 480px; height: 650px; background-color: #d8d2c2; border: 4px solid #555; position: relative; box-shadow: inset 0 0 15px rgba(0,0,0,0.3); border-radius: 4px; }
+        .duct { background-color: #2b2b2b; position: absolute; box-shadow: inset 0 0 5px rgba(0,0,0,0.8); }
+        .duct-h1 { top: 180px; left: 20px; width: 370px; height: 30px; }
+        .duct-h2 { top: 350px; left: 20px; width: 370px; height: 30px; }
+        .duct-h3 { top: 520px; left: 20px; width: 370px; height: 30px; }
+        .duct-v  { top: 20px; right: 80px; width: 30px; height: 530px; }
+
+        .comp { position: absolute; background: #f0f0f0; border: 2px solid #333; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: #111; box-shadow: 2px 2px 6px rgba(0,0,0,0.3); font-size: 13px; }
+
+        /* 時間繼電器 */
+        .comp-tr { background: #fff8dc; font-size: 11px; text-align: center; cursor: pointer; transition: all 0.2s; position: absolute; }
+        .tr-dial-container { position: relative; width: 22px; height: 22px; margin-top: 2px; }
+        .tr-dial { width: 100%; height: 100%; border-radius: 50%; background: #444; border: 2px solid #222; position: relative; transition: transform 0.1s linear; }
+        .tr-dial::after { content: ''; position: absolute; top: 2px; left: 50%; width: 2px; height: 7px; background: #ffd700; transform: translateX(-50%); }
+        .comp-tr.running { background: #fff099; border-color: #ff9800; animation: pulse-border 0.5s infinite alternate; }
+        .comp-tr.finished { background: #c8e6c9; border-color: #4caf50; }
+        @keyframes pulse-border { from { box-shadow: 0 0 4px #ff9800; } to { box-shadow: 0 0 12px #ff3d00; } }
+        .tr-countdown-text { font-size: 10px; font-weight: bold; color: #0077cc; margin-top: 2px; }
+        .comp-tr.running .tr-countdown-text { color: #d32f2f; }
+
+        .comp-tb1 { top: 20px; left: 30px; width: 90px; height: 45px; background: #333; color: #fff; }
+        .comp-nfb { top: 80px; left: 30px; width: 60px; height: 85px; background: #222; color: #fff; cursor: pointer; transition: all 0.2s; }
+        .comp-nfb.on { border-color: var(--accent-green); box-shadow: 0 0 10px rgba(0,230,118,0.5); }
+        .comp-df1 { top: 90px; left: 105px; width: 35px; height: 35px; border-radius: 50%; background: #e74c3c; color: white; line-height: 35px; text-align: center; font-size: 11px; }
+        .comp-df2 { top: 90px; left: 145px; width: 35px; height: 35px; border-radius: 50%; background: #e74c3c; color: white; line-height: 35px; text-align: center; font-size: 11px; }
+
+        .comp-tr1 { top: 90px; left: 190px; width: 44px; height: 75px; }
+        .comp-tr2 { top: 90px; left: 240px; width: 44px; height: 75px; }
+
+        .comp-mcf { top: 230px; left: 30px; width: 70px; height: 100px; background: #444; color: white; }
+        .comp-mcr { top: 230px; left: 110px; width: 70px; height: 100px; background: #444; color: white; }
+        .comp-kr  { top: 230px; left: 195px; width: 50px; height: 70px; background: #e6f7ff; }
+        .comp-tr3 { top: 230px; left: 255px; width: 45px; height: 80px; }
+
+        .comp-thry { top: 390px; left: 30px; width: 80px; height: 110px; background: #d9534f; color: white; cursor: pointer; transition: transform 0.1s; }
+        .comp-thry.bz-active { animation: buzzer-shake 0.15s infinite; }
+        @keyframes buzzer-shake { 0% { transform: translate(0, 0); } 25% { transform: translate(2px, -2px); } 50% { transform: translate(-2px, 2px); } 75% { transform: translate(2px, 2px); } 100% { transform: translate(0, 0); } }
+
+        .comp-mcd  { top: 390px; left: 120px; width: 80px; height: 110px; background: #444; color: white; }
+        .comp-mcs  { top: 390px; left: 210px; width: 80px; height: 110px; background: #444; color: white; }
+
+        .comp-tb2 { top: 570px; left: 40px; width: 180px; height: 35px; background: #333; color: #fff; }
+        .comp-tb3 { top: 120px; right: 20px; width: 45px; height: 380px; background: #333; color: #fff; writing-mode: vertical-lr; text-align: center; letter-spacing: 5px; }
+
+        .ground-terminal { position: absolute; bottom: 60px; right: 130px; display: flex; gap: 4px; }
+        .g-dot { width: 10px; height: 10px; border-radius: 50%; background: #ffd700; border: 1px solid #000; }
+
+        .mc-status { width: 20px; height: 20px; background: #222; border-radius: 3px; margin-top: 6px; transition: background 0.1s; box-shadow: inset 0 0 5px #000; }
+        .mc-status.active { background: #00e676; box-shadow: 0 0 8px #00e676; }
+        /* KR 特殊狀態燈 (藍色代表 SET) */
+        .mc-status.kr-set { background: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); }
+
+        /* 操作面板 Layout */
+        .control-panel { width: 420px; height: 650px; background-color: #3b3e45; border: 4px solid #222; position: relative; box-shadow: inset 0 0 20px rgba(0,0,0,0.6); border-radius: 4px; }
+        .panel-duct-h { top: 300px; left: 80px; width: 220px; height: 30px; background: #1a1a1a; position: absolute; }
+        .panel-duct-v { top: 20px; right: 60px; width: 30px; height: 420px; background: #1a1a1a; position: absolute; }
+        .panel-duct-b { top: 410px; left: 80px; width: 220px; height: 30px; background: #1a1a1a; position: absolute; }
+
+        .digital-counter { position: absolute; top: 280px; left: 25px; width: 35px; height: 70px; background: #111; border: 2px solid #666; display: flex; flex-direction: column; align-items: center; justify-content: space-around; padding: 2px; }
+        .counter-wheel { width: 25px; height: 8px; background: #fff; color: #000; font-size: 9px; font-weight: bold; text-align: center; line-height: 8px; border-radius: 1px; }
+
+        .panel-device { position: absolute; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; box-shadow: 3px 3px 8px rgba(0,0,0,0.5), inset -2px -2px 5px rgba(0,0,0,0.4); cursor: pointer; transition: transform 0.05s, box-shadow 0.05s; }
+        .panel-device:active, .panel-device.pressed { transform: scale(0.92); box-shadow: 1px 1px 3px rgba(0,0,0,0.8), inset 2px 2px 5px rgba(0,0,0,0.6); }
+
+        .lamp { width: 46px; height: 46px; border: 3px solid #222; color: #fff; font-size: 13px; text-shadow: 0 0 3px #000; }
+        .lamp-red { background: radial-gradient(circle at 30% 30%, #ff6b6b, #880000); }
+        .lamp-red.lit { background: radial-gradient(circle at 30% 30%, #ff9999, #ff0000); box-shadow: 0 0 18px #ff3333; }
+        .lamp-green { background: radial-gradient(circle at 30% 30%, #6bffb8, #007733); }
+        .lamp-green.lit { background: radial-gradient(circle at 30% 30%, #b3ffda, #00ff66); box-shadow: 0 0 18px #00ff66; }
+        .lamp-r1 { top: 220px; left: 95px; } .lamp-r2 { top: 220px; left: 150px; } .lamp-r3 { top: 220px; left: 205px; } .lamp-g  { top: 220px; left: 260px; }
+
+        .btn { width: 50px; height: 50px; border: 3px solid #111; color: white; font-size: 11px; text-align: center; }
+        .btn-ems { top: 345px; left: 90px; background: radial-gradient(circle at 30% 30%, #e74c3c, #900); border-radius: 50%; width: 54px; height: 54px; font-size: 10px; transition: all 0.2s; }
+        .btn-ems.tripped { border-color: #ff5252; box-shadow: 0 0 15px #ff5252; }
+        .btn-fwd { top: 345px; left: 150px; background: radial-gradient(circle at 30% 30%, #555, #222); }
+        .btn-rev { top: 345px; left: 205px; background: radial-gradient(circle at 30% 30%, #555, #222); }
+        .btn-off { top: 345px; left: 260px; background: radial-gradient(circle at 30% 30%, #e67e22, #a04000); }
+
+        .comp-tb4 { top: 180px; right: 15px; width: 35px; height: 300px; border: 2px dashed #888; background: rgba(0,0,0,0.2); color: #aaa; writing-mode: vertical-lr; text-align: center; letter-spacing: 4px; }
+
+        /* 馬達與控制面板區 */
+        .bottom-container { display: flex; gap: 20px; width: 100%; max-width: 930px; margin-top: 20px; flex-wrap: wrap; }
+        .motor-card { background: var(--panel-bg); border: 2px solid var(--border-color); border-radius: 12px; padding: 20px; flex: 1; min-width: 380px; display: flex; align-items: center; justify-content: space-around; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        .motor-visual { display: flex; align-items: center; gap: 20px; }
+        .motor-body { width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #555 30%, #222 70%); border: 5px solid #777; position: relative; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+        .motor-shaft { width: 24px; height: 24px; border-radius: 50%; background: #aaa; border: 3px solid #333; position: relative; }
+        .motor-shaft::after { content: ''; position: absolute; top: 2px; left: 50%; width: 4px; height: 8px; background: #000; transform: translateX(-50%); }
+        .motor-shaft.rotating-fwd { animation: spin-fwd 0.6s linear infinite; }
+        .motor-shaft.rotating-rev { animation: spin-rev 0.6s linear infinite; }
+        @keyframes spin-fwd { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes spin-rev { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+
+        .status-badge { padding: 4px 12px; border-radius: 12px; font-weight: bold; font-size: 13px; display: inline-block; }
+        .bg-off { background: #555; color: #fff; } .bg-fwd { background: #00e676; color: #000; } .bg-rev { background: #00d2ff; color: #000; } .bg-trip { background: #ff5252; color: #fff; }
+
+        .timer-config-card { background: var(--panel-bg); border: 2px solid var(--border-color); border-radius: 12px; padding: 20px; flex: 1; min-width: 380px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; }
+        .timer-config-title { font-size: 15px; font-weight: bold; color: var(--accent-yellow); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+        .audio-toggle-btn { background: #334; color: var(--accent-blue); border: 1px solid var(--accent-blue); font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer; }
+        .audio-toggle-btn.muted { color: #888; border-color: #666; }
+        .timer-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; background: #1e1e2e; padding: 8px 12px; border-radius: 6px; }
+        .timer-row label { font-size: 13px; font-weight: bold; width: 140px; }
+        .timer-row input[type="range"] { flex: 1; margin: 0 10px; cursor: pointer; }
+        .timer-val { font-size: 13px; color: var(--accent-blue); font-weight: bold; width: 45px; text-align: right; }
+
+        .controls-info { background: #252538; padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent-blue); width: 100%; max-width: 930px; margin-top: 15px; font-size: 13px; line-height: 1.6; }
+
+        .tooltip { position: absolute; bottom: -25px; font-size: 10px; background: rgba(0,0,0,0.8); color: #fff; padding: 2px 6px; border-radius: 3px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 10; }
+        *:hover > .tooltip { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <h1>第二站第二題：電動機正反轉兼Y-Δ啟動附瞬時停電保護控制電路</h1>
+    <div class="subtitle">改進版：支援 EMS Toggle 切換、OFF 按鈕 Click & Hold 模擬瞬停及 TR2/TR3 視覺連動</div>
+
+    <div class="main-container">
+        <!-- 左側：器具板 -->
+        <div class="board-card">
+            <div class="board-title">器具板 (內部盤面)</div>
+            <div class="appliance-board">
+                <div class="duct duct-h1"></div><div class="duct duct-h2"></div><div class="duct duct-h3"></div><div class="duct duct-v"></div>
+
+                <div class="comp comp-tb1">TB1</div>
+                <div class="comp comp-nfb" id="nfb-device" onclick="toggleNFB()">
+                    <span>NFB</span><span id="nfb-state-text" style="font-size:10px; color:#ff5252;">[OFF]</span>
+                    <div class="tooltip">點擊開關無熔絲開關電源</div>
+                </div>
+                <div class="comp comp-df1">D-F</div><div class="comp comp-df2">D-F</div>
+
+                <div class="comp comp-tr comp-tr1" id="tr1-comp">
+                    TR1<div class="tr-dial-container"><div class="tr-dial" id="tr1-dial"></div></div><span id="tr1-label" class="tr-countdown-text">2.5s</span>
+                    <div class="tooltip">Y-Δ 啟動計時器</div>
+                </div>
+                <div class="comp comp-tr comp-tr2" id="tr2-comp">
+                    TR2<div class="tr-dial-container"><div class="tr-dial" id="tr2-dial"></div></div><span id="tr2-label" class="tr-countdown-text">5.0s</span>
+                    <div class="tooltip">停電復電重啟延遲</div>
+                </div>
+
+                <div class="comp comp-mcf">MCF<div class="mc-status" id="st-mcf"></div></div>
+                <div class="comp comp-mcr">MCR<div class="mc-status" id="st-mcr"></div></div>
+                <div class="comp comp-kr">KR<br><span style="font-size:9px;">保持繼電器</span><div class="mc-status" id="st-kr"></div><div class="tooltip">藍燈亮起表示 SET (記憶運轉中)</div></div>
+
+                <div class="comp comp-tr comp-tr3" id="tr3-comp">
+                    TR3<div class="tr-dial-container"><div class="tr-dial" id="tr3-dial"></div></div><span id="tr3-label" class="tr-countdown-text">10.0s</span>
+                    <div class="tooltip">容許瞬時停電視窗</div>
+                </div>
+
+                <div class="comp comp-thry" id="thry-device" onclick="toggleTHRY()">
+                    <span>TH-RY</span><span id="thry-state-text" style="font-size:10px; color:#fff;">[正常]</span>
+                    <div class="tooltip">點擊模擬過載跳脫/復歸</div>
+                </div>
+                <div class="comp comp-mcd">MCD<div class="mc-status" id="st-mcd"></div></div>
+                <div class="comp comp-mcs">MCS<div class="mc-status" id="st-mcs"></div></div>
+
+                <div class="comp comp-tb2">TB2 (馬達接線端子)</div>
+                <div class="comp comp-tb3">TB3 端子台</div>
+                <div class="ground-terminal"><div class="g-dot"></div><div class="g-dot"></div><div class="g-dot"></div><span style="font-size:10px; color:#333; font-weight:bold;">G</span></div>
+            </div>
+        </div>
+
+        <!-- 右側：操作面板 -->
+        <div class="board-card">
+            <div class="board-title">操作面板 (正視圖)</div>
+            <div class="control-panel">
+                <div class="panel-duct-h"></div><div class="panel-duct-v"></div><div class="panel-duct-b"></div>
+                <div class="digital-counter"><div class="counter-wheel">0</div><div class="counter-wheel">0</div><div class="counter-wheel">1</div></div>
+
+                <div class="panel-device lamp lamp-red lamp-r1" id="lamp-r1">R1<div class="tooltip">R1: 正轉運轉燈</div></div>
+                <div class="panel-device lamp lamp-red lamp-r2" id="lamp-r2">R2<div class="tooltip">R2: 反轉運轉燈</div></div>
+                <div class="panel-device lamp lamp-red lamp-r3" id="lamp-r3">R3<div class="tooltip">R3: Δ運轉指示燈</div></div>
+                <div class="panel-device lamp lamp-green lamp-g" id="lamp-g">G<div class="tooltip">G: 停止指示燈</div></div>
+
+                <!-- 按鈕區 -->
+                <div class="panel-device btn btn-ems" id="btn-ems" onclick="toggleEMS()">EMS<div class="tooltip">單擊切換 (Toggle) 跳脫/復歸</div></div>
+                <div class="panel-device btn btn-fwd" id="btn-fwd">FWD<div class="tooltip">正轉啟動 (PB1)</div></div>
+                <div class="panel-device btn btn-rev" id="btn-rev">REV<div class="tooltip">反轉啟動 (PB2)</div></div>
+                <div class="panel-device btn btn-off" id="btn-off">OFF<div class="tooltip">按住模擬瞬停，點擊即可停止</div></div>
+
+                <div class="comp-tb4">TB4 控制線接線端子</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部資訊與控制 -->
+    <div class="bottom-container">
+        <div class="motor-card">
+            <div class="motor-visual">
+                <div class="motor-body"><div class="motor-shaft" id="motor-shaft"></div></div>
+                <div>
+                    <div style="font-weight: bold; font-size:16px;">15HP 三相感應電動機</div>
+                    <div style="font-size:12px; color:#aaa; margin-top:4px;">狀態: <span id="motor-status-badge" class="status-badge bg-off">停止 (OFF)</span></div>
+                    <div style="font-size:12px; color:#888; margin-top:2px;" id="motor-connection">結線狀態: 無</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="timer-config-card">
+            <div class="timer-config-title">
+                <span>⏱️ 時間繼電器參數設定</span>
+                <button class="audio-toggle-btn" id="audio-toggle-btn" onclick="toggleAudio()">🔊 音效: ON</button>
+            </div>
+            <div class="timer-row">
+                <label>TR1 (Y-Δ 轉換):</label>
+                <input type="range" id="input-tr1" min="0.5" max="10" step="0.5" value="2.5" oninput="updateTimerVal('tr1', this.value)">
+                <span class="timer-val" id="val-tr1">2.5 s</span>
+            </div>
+            <div class="timer-row">
+                <label>TR2 (復電重啟延遲):</label>
+                <input type="range" id="input-tr2" min="1" max="20" step="1" value="5" oninput="updateTimerVal('tr2', this.value)">
+                <span class="timer-val" id="val-tr2">5 s</span>
+            </div>
+            <div class="timer-row">
+                <label>TR3 (斷電容許視窗):</label>
+                <input type="range" id="input-tr3" min="1" max="30" step="1" value="10" oninput="updateTimerVal('tr3', this.value)">
+                <span class="timer-val" id="val-tr3">10 s</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls-info">
+        <strong>💡 改進操作說明：</strong><br>
+        1. <strong>EMS (Toggle)：</strong> 點擊一次鎖定為跳脫狀態，外框發紅；再點擊一次復歸。<br>
+        2. <strong>OFF (Click vs Hold)：</strong> 直接「點擊」如同瞬間斷電再復電，觸發自動重啟邏輯；「按住」則持續斷電。按住時 <strong>TR3 (容許視窗)</strong> 會開始計時。<br>
+        3. <strong>復電重啟邏輯：</strong> 若斷電時間 <strong>小於 TR3</strong> 放開按鈕，<strong>TR2</strong> 將接續倒數，完畢後依記憶方向自動重啟。若超過 TR3 才放開，KR 會被重置不再重啟。<br>
+        4. <strong>KR 指示燈：</strong> KR 繼電器上方有藍色燈號，亮起代表正在記憶「運轉狀態 (SET)」。
+    </div>
+
+    <script>
+        // 音效模組 (保持原樣)
+        let audioEnabled = true; let audioCtx = null; let bzOscillator = null;
+        function initAudio() { if (!audioCtx) { const AudioContext = window.AudioContext || window.webkitAudioContext; audioCtx = new AudioContext(); } if (audioCtx.state === 'suspended') audioCtx.resume(); }
+        function toggleAudio() { audioEnabled = !audioEnabled; const btn = document.getElementById('audio-toggle-btn'); if (audioEnabled) { btn.innerText = '🔊 音效: ON'; btn.classList.remove('muted'); } else { btn.innerText = '🔇 音效: OFF'; btn.classList.add('muted'); stopBuzzer(); } }
+        function playClickSound(freq = 400, duration = 0.05) { if (!audioEnabled) return; try { initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + duration); gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration); } catch (e) {} }
+        function playMcMagnetizeSound() { if (!audioEnabled) return; try { initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'square'; osc.frequency.setValueAtTime(120, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.08); gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.08); } catch (e) {} }
+        function startBuzzer() { if (!audioEnabled || bzOscillator) return; try { initAudio(); bzOscillator = audioCtx.createOscillator(); const gain = audioCtx.createGain(); bzOscillator.type = 'sawtooth'; bzOscillator.frequency.setValueAtTime(880, audioCtx.currentTime); gain.gain.setValueAtTime(0.15, audioCtx.currentTime); bzOscillator.connect(gain); gain.connect(audioCtx.destination); bzOscillator.start(); } catch (e) {} }
+        function stopBuzzer() { if (bzOscillator) { try { bzOscillator.stop(); bzOscillator.disconnect(); } catch(e) {} bzOscillator = null; } }
+
+        // 電路狀態
+        let nfbOn = false;
+        let thryTripped = false;
+        let emsTripped = false;
+        let offPressed = false;
+        let isPowerActive = false;
+
+        let mcf = false; let mcr = false; let mcs = false; let mcd = false;
+        let krSet = false;
+        let lastRunDirection = 'FWD'; // 記憶上次運轉方向供復電使用
+
+        // 時間參數
+        let tr1Time = 2.5; let tr2Time = 5.0; let tr3Time = 10.0;
+        let tr3b = true;
+        let tr2b = true;
+        let trIntervals = { tr1: null, tr2: null, tr3: null };
+
+        function updateTimerVal(trKey, val) {
+            const numVal = parseFloat(val);
+            if (trKey === 'tr1') { tr1Time = numVal; document.getElementById('val-tr1').innerText = numVal.toFixed(1) + ' s'; if (!trIntervals.tr1) document.getElementById('tr1-label').innerText = numVal.toFixed(1) + 's'; }
+            if (trKey === 'tr2') { tr2Time = numVal; document.getElementById('val-tr2').innerText = numVal.toFixed(1) + ' s'; if (!trIntervals.tr2) document.getElementById('tr2-label').innerText = numVal.toFixed(1) + 's'; }
+            if (trKey === 'tr3') { tr3Time = numVal; document.getElementById('val-tr3').innerText = numVal.toFixed(1) + ' s'; if (!trIntervals.tr3) document.getElementById('tr3-label').innerText = numVal.toFixed(1) + 's'; }
+        }
+
+        // --- 核心供電邏輯 (取代原本零散的判定) ---
+        function evaluatePowerState() {
+            //const currentPower = nfbOn && !thryTripped && !emsTripped && !offPressed;
+            const currentPower = nfbOn && !thryTripped && !emsTripped;
+
+            if (currentPower && !isPowerActive) {
+                // 從斷電變為復電
+                isPowerActive = true;
+                handlePowerRestore();
+            } else if (!currentPower && isPowerActive) {
+                // 從有電變為斷電
+                isPowerActive = false;
+                handlePowerLoss();
+            }
+            updateCircuitState();
+        }
+
+        function handlePowerLoss() {
+            mcf = false; mcr = false; mcs = false; mcd = false;
+            stopTimerCountdown('tr1');
+            //stopTimerCountdown('tr2');
+
+            if (krSet) {
+                // 若斷電前正在運轉，TR3 開始計時 (容許瞬停視窗)
+                startTimerCountdown('tr3', tr3Time, () => {
+                    krSet = false; // 超過時間，Reset KR
+                    updateCircuitState();
+                });
+              startTimerCountdown('tr2', tr2Time, () =>  {});
+            }
+        }
+
+        function handlePowerRestore() {
+            // Need a global variable, the time elapsed btw handlePowerLoss() and handlePowerRestore()
+            // 復電時，停止 TR3 倒數
+            stopTimerCountdown('tr3');
+
+            if (krSet) {
+                // 若 KR 依然為 SET (代表在 TR3 時限內復電)，則啟動 TR2 重啟延遲
+                startTimerCountdown('tr2', tr2Time, () => {
+                    if (isPowerActive) {
+                        if (lastRunDirection === 'FWD') executeFWD();
+                        else if (lastRunDirection === 'REV') executeREV();
+                    }
+                });
+            }
+        }
+
+        // --- 倒數動畫核心 ---
+        function startTimerCountdown(trKey, duration, onComplete) {
+            stopTimerCountdown(trKey);
+            const comp = document.getElementById(trKey + '-comp');
+            const dial = document.getElementById(trKey + '-dial');
+            const label = document.getElementById(trKey + '-label');
+
+            comp.classList.add('running'); comp.classList.remove('finished');
+            let remaining = duration; const step = 0.05;
+
+            trIntervals[trKey] = setInterval(() => {
+                remaining -= step;
+                if (remaining <= 0) {
+                    remaining = 0;
+                    clearInterval(trIntervals[trKey]);
+                    comp.classList.remove('running'); comp.classList.add('finished');
+                    label.innerText = '0.0s';
+                    dial.style.transform = 'rotate(360deg)';
+                    playClickSound(800, 0.03);
+                    if (onComplete) onComplete();
+                } else {
+                    label.innerText = remaining.toFixed(1) + 's';
+                    dial.style.transform = `rotate(${((duration - remaining) / duration) * 360}deg)`;
+                }
+            }, step * 1000);
+        }
+
+        function stopTimerCountdown(trKey) {
+            if (trIntervals[trKey]) clearInterval(trIntervals[trKey]);
+            const comp = document.getElementById(trKey + '-comp');
+            const dial = document.getElementById(trKey + '-dial');
+            const label = document.getElementById(trKey + '-label');
+            if (comp) {
+                comp.classList.remove('running', 'finished');
+                dial.style.transform = 'rotate(0deg)';
+                const val = (trKey === 'tr1') ? tr1Time : (trKey === 'tr2') ? tr2Time : tr3Time;
+                label.innerText = val.toFixed(1) + 's';
+            }
+        }
+
+        // --- 控制元件互動 ---
+        function toggleNFB() {
+            playClickSound(300, 0.08);
+            nfbOn = !nfbOn;
+            const el = document.getElementById('nfb-device'); const txt = document.getElementById('nfb-state-text');
+            if (nfbOn) { el.classList.add('on'); txt.innerText = '[ON]'; txt.style.color = '#00e676'; } 
+            else { el.classList.remove('on'); txt.innerText = '[OFF]'; txt.style.color = '#ff5252'; krSet = false; }
+            evaluatePowerState();
+        }
+
+        function toggleEMS() {
+            playClickSound(400, 0.05);
+            emsTripped = !emsTripped;
+            const btn = document.getElementById('btn-ems');
+            if (emsTripped) {
+                btn.classList.add('tripped');
+                btn.innerText = 'EMS\n(TRIP)';
+            } else {
+                btn.classList.remove('tripped');
+                btn.innerText = 'EMS';
+            }
+            evaluatePowerState();
+        }
+
+        function toggleTHRY() {
+            thryTripped = !thryTripped;
+            const el = document.getElementById('thry-device'); const txt = document.getElementById('thry-state-text');
+            if (thryTripped) { txt.innerText = '[跳脫]'; txt.style.color = '#ffd700'; el.classList.add('bz-active'); startBuzzer(); krSet = false; } 
+            else { txt.innerText = '[正常]'; txt.style.color = '#fff'; el.classList.remove('bz-active'); stopBuzzer(); }
+            evaluatePowerState();
+        }
+
+        // FWD 與 REV
+        const fwdBtn = document.getElementById('btn-fwd');
+        fwdBtn.onmousedown = () => { fwdBtn.classList.add('pressed'); playClickSound(500, 0.04); if (!mcf & nfbOn && !emsTripped && tr3b && tr2b && !mcr && !thryTripped) { executeFWD(); updateCircuitState(); } };
+        fwdBtn.onmouseup = fwdBtn.onmouseleave = () => fwdBtn.classList.remove('pressed');
+
+        const revBtn = document.getElementById('btn-rev');
+        revBtn.onmousedown = () => { revBtn.classList.add('pressed'); playClickSound(500, 0.04); if (!mcr & nfbOn && !emsTripped && tr3b && tr2b && !mcf && !thryTripped) { executeREV(); updateCircuitState(); } };
+        revBtn.onmouseup = revBtn.onmouseleave = () => revBtn.classList.remove('pressed');
+
+        function executeFWD() { mcf = true; krSet = true; lastRunDirection = 'FWD'; playMcMagnetizeSound(); stopTimerCountdown('tr2'); startYDSequence(); }
+
+        function executeREV() {
+            mcr = true;
+            krSet = false;
+            lastRunDirection = 'REV';
+            playMcMagnetizeSound();
+            stopTimerCountdown('tr2');
+            startYDSequence();
+        }
+
+        function startYDSequence() {
+            mcs = true; mcd = false; playMcMagnetizeSound();
+            startTimerCountdown('tr1', tr1Time, () => {
+                if (mcf || mcr) { mcs = false; mcd = true; playMcMagnetizeSound(); updateCircuitState(); }
+            });
+        }
+
+        // OFF 按鈕 (Click & Hold)
+        const offBtn = document.getElementById('btn-off');
+        offBtn.onmousedown = () => {
+            playClickSound(500, 0.04);
+            offBtn.classList.add('pressed');
+            offPressed = true;
+            evaluatePowerState();
+        };
+        const releaseOff = () => {
+            if (offPressed) {
+                offBtn.classList.remove('pressed');
+                offPressed = false;
+                evaluatePowerState();
+            }
+        };
+        offBtn.onmouseup = releaseOff;
+        offBtn.onmouseleave = releaseOff;
+        offBtn.ontouchstart = (e) => { e.preventDefault(); offBtn.onmousedown(); };
+        offBtn.ontouchend = (e) => { e.preventDefault(); releaseOff(); };
+
+        // --- 介面更新 ---
+        function updateCircuitState() {
+            // KR 指示燈
+            const krStatus = document.getElementById('st-kr');
+            if (krSet) krStatus.classList.add('kr-set');
+            else krStatus.classList.remove('kr-set');
+
+            // MC 狀態燈
+            const setElActive = (id, active) => { const el = document.getElementById(id); if (active) el.classList.add('active'); else el.classList.remove('active'); };
+            setElActive('st-mcf', mcf); setElActive('st-mcr', mcr); setElActive('st-mcs', mcs); setElActive('st-mcd', mcd);
+
+            // 面板指示燈
+            const hasPower = isPowerActive;
+            const setLamp = (id, lit) => { const el = document.getElementById(id); if (lit) el.classList.add('lit'); else el.classList.remove('lit'); };
+            const mcfOrMcr = hasPower && (mcf || mcr);
+            setLamp('lamp-r2', mcfOrMcr && !mcd );
+            //setLamp('lamp-r2', hasPower && (mcf || mcr) && !mcd );
+            const starDeltaTransitionComplete = mcfOrMcr && mcd;
+            setLamp('lamp-r1', starDeltaTransitionComplete && krSet );
+            //setLamp('lamp-r1', hasPower && (mcf || mcr) && mcd );
+            //setLamp('lamp-r1', mcfOrMcr && mcd );
+            setLamp('lamp-r3', starDeltaTransitionComplete && (!krSet) );
+            //setLamp('lamp-r3', hasPower && mcd);
+            setLamp('lamp-g', hasPower && !mcf && !mcr);
+
+            // 馬達動畫與文字狀態
+            const shaft = document.getElementById('motor-shaft');
+            const badge = document.getElementById('motor-status-badge');
+            const conn = document.getElementById('motor-connection');
+
+            shaft.className = 'motor-shaft';
+            if (mcf) {
+                shaft.classList.add('rotating-fwd');
+                badge.className = 'status-badge bg-fwd'; badge.innerText = '正轉運轉中 (FWD)';
+            } else if (mcr) {
+                shaft.classList.add('rotating-rev');
+                badge.className = 'status-badge bg-rev'; badge.innerText = '反轉運轉中 (REV)';
+            } else if (thryTripped) {
+                badge.className = 'status-badge bg-trip'; badge.innerText = '過載跳脫 (TH-RY Trip)';
+            } else {
+                badge.className = 'status-badge bg-off'; badge.innerText = '停止 (OFF)';
+            }
+
+            if (mcs) { conn.innerText = '結線狀態: Y 啟動中 (星形降壓)'; conn.style.color = '#ffd700'; } 
+            else if (mcd) { conn.innerText = '結線狀態: Δ 全壓運轉中 (三角形)'; conn.style.color = '#00e676'; } 
+            else { conn.innerText = '結線狀態: 無供電 / 停止'; conn.style.color = '#888'; }
+        }
+
+        // Execute at the outmost scope once
+        evaluatePowerState();
+    </script>
+</body>
+</html>
