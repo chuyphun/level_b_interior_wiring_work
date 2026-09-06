@@ -271,7 +271,9 @@
 
     <script>
         // 音效模組 (保持原樣)
-        let audioEnabled = true; let audioCtx = null; let bzOscillator = null;
+        let audioEnabled = true;
+        let audioCtx = null;
+        let bzOscillator = null;
         function initAudio() { if (!audioCtx) { const AudioContext = window.AudioContext || window.webkitAudioContext; audioCtx = new AudioContext(); } if (audioCtx.state === 'suspended') audioCtx.resume(); }
         function toggleAudio() { audioEnabled = !audioEnabled; const btn = document.getElementById('audio-toggle-btn'); if (audioEnabled) { btn.innerText = '🔊 音效: ON'; btn.classList.remove('muted'); } else { btn.innerText = '🔇 音效: OFF'; btn.classList.add('muted'); stopBuzzer(); } }
         function playClickSound(freq = 400, duration = 0.05) { if (!audioEnabled) return; try { initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + duration); gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration); } catch (e) {} }
@@ -285,31 +287,41 @@
         let emsTripped = false;
         let offPressed = false;
         let isPowerActive = false;
+        //let numSecPowerLoss = Infinity;
+        let tsStartPowerLoss;
 
-        let mcf = false; let mcr = false; let mcs = false; let mcd = false;
+        let mcf = false;
+        let mcr = false;
+        let mcs = false;
+        let mcd = false;
         let krSet = false;
         let lastRunDirection = 'FWD'; // 記憶上次運轉方向供復電使用
 
         // 時間參數
-        let tr1Time = 2.5; let tr2Time = 5.0; let tr3Time = 10.0;
+        let tr1Sec = 2.5;
+        let tr2Sec = 5.0;
+        let tr3Sec = 10.0;
         let tr3b = true;
         let tr2b = true;
+        let tr2_legs_08_06 = false;
         let trIntervals = { tr1: null, tr2: null, tr3: null };
 
         function updateTimerVal(trKey, val) {
             const numVal = parseFloat(val);
-            if (trKey === 'tr1') { tr1Time = numVal; document.getElementById('val-tr1').innerText = numVal.toFixed(1) + ' s'; if (!trIntervals.tr1) document.getElementById('tr1-label').innerText = numVal.toFixed(1) + 's'; }
-            if (trKey === 'tr2') { tr2Time = numVal; document.getElementById('val-tr2').innerText = numVal.toFixed(1) + ' s'; if (!trIntervals.tr2) document.getElementById('tr2-label').innerText = numVal.toFixed(1) + 's'; }
-            if (trKey === 'tr3') { tr3Time = numVal; document.getElementById('val-tr3').innerText = numVal.toFixed(1) + ' s'; if (!trIntervals.tr3) document.getElementById('tr3-label').innerText = numVal.toFixed(1) + 's'; }
+            if (trKey === 'tr1') { tr1Sec = numVal; document.getElementById('val-tr1').innerText = numVal.toFixed(1) + ' s'; if (!trIntervals.tr1) document.getElementById('tr1-label').innerText = numVal.toFixed(1) + 's'; }
+            if (trKey === 'tr2') { tr2Sec = numVal; document.getElementById('val-tr2').innerText = numVal.toFixed(1) + ' s'; if (!trIntervals.tr2) document.getElementById('tr2-label').innerText = numVal.toFixed(1) + 's'; }
+            if (trKey === 'tr3') { tr3Sec = numVal; document.getElementById('val-tr3').innerText = numVal.toFixed(1) + ' s'; if (!trIntervals.tr3) document.getElementById('tr3-label').innerText = numVal.toFixed(1) + 's'; }
         }
 
         // --- 核心供電邏輯 (取代原本零散的判定) ---
         function evaluatePowerState() {
             //const currentPower = nfbOn && !thryTripped && !emsTripped && !offPressed;
+            // currentPower 檢查 circuit 當下是否有⚡️
             const currentPower = nfbOn && !thryTripped && !emsTripped;
 
+            // isPowerActive 紀錄 circuit "前一步"是否有⚡️
+            // The global var isPowerActive only gets altered here in this function
             if (currentPower && !isPowerActive) {
-                // 從斷電變為復電
                 isPowerActive = true;
                 handlePowerRestore();
             } else if (!currentPower && isPowerActive) {
@@ -321,33 +333,51 @@
         }
 
         function handlePowerLoss() {
-            mcf = false; mcr = false; mcs = false; mcd = false;
-            stopTimerCountdown('tr1');
-            //stopTimerCountdown('tr2');
-
-            if (krSet) {
-                // 若斷電前正在運轉，TR3 開始計時 (容許瞬停視窗)
-                startTimerCountdown('tr3', tr3Time, () => {
-                    krSet = false; // 超過時間，Reset KR
-                    updateCircuitState();
-                });
-              startTimerCountdown('tr2', tr2Time, () =>  {});
+            //const start = performance.now();
+            tsStartPowerLoss = Date.now();
+            // What if user press and hold OFF right before blackout?
+            if (mcd) {
+                startTimerCountdown(
+                    'tr2',
+                    tr2Sec,
+                    () =>  {
+                        updateCircuitState();
+                    }
+                );
+                tr2_legs_08_06 = true;
             }
+
+            if (mcs) {
+                stopTimerCountdown('tr1');
+            }
+
+            mcf = mcr = mcd = mcs = false;
         }
 
         function handlePowerRestore() {
-            // Need a global variable, the time elapsed btw handlePowerLoss() and handlePowerRestore()
-            // 復電時，停止 TR3 倒數
-            stopTimerCountdown('tr3');
+            // Need a global variable, the time elapsed btw handlePowerLoss() and handlePowerRestore()?
 
-            if (krSet) {
-                // 若 KR 依然為 SET (代表在 TR3 時限內復電)，則啟動 TR2 重啟延遲
-                startTimerCountdown('tr2', tr2Time, () => {
-                    if (isPowerActive) {
-                        if (lastRunDirection === 'FWD') executeFWD();
-                        else if (lastRunDirection === 'REV') executeREV();
+            // 復電時，停止 TR3 倒數
+            //stopTimerCountdown('tr3');
+
+            const tsEndPowerLoss = Date.now();
+            const msPowerLoss = tsEndPowerLoss - tsStartPowerLoss;
+            const secPowerLoss = msPowerLoss / 1000;
+            //console.log({ tsStartPowerLoss });
+            //console.log({ tsEndPowerLoss });
+            //console.log({ msPowerLoss });
+            //console.log({ secPowerLoss });
+            //console.log({ tr2Sec });
+            if (secPowerLoss < tr2Sec) {
+                if (tr2_legs_08_06) {
+                    if (krSet) {
+                        executeFWD();
+                    } else {
+                        executeREV();
                     }
-                });
+                }
+            } else {
+                tr2_legs_08_06 = false;
             }
         }
 
@@ -359,7 +389,8 @@
             const label = document.getElementById(trKey + '-label');
 
             comp.classList.add('running'); comp.classList.remove('finished');
-            let remaining = duration; const step = 0.05;
+            let remaining = duration;
+            const step = 0.05;
 
             trIntervals[trKey] = setInterval(() => {
                 remaining -= step;
@@ -386,7 +417,7 @@
             if (comp) {
                 comp.classList.remove('running', 'finished');
                 dial.style.transform = 'rotate(0deg)';
-                const val = (trKey === 'tr1') ? tr1Time : (trKey === 'tr2') ? tr2Time : tr3Time;
+                const val = (trKey === 'tr1') ? tr1Sec : (trKey === 'tr2') ? tr2Sec : tr3Sec;
                 label.innerText = val.toFixed(1) + 's';
             }
         }
@@ -395,9 +426,18 @@
         function toggleNFB() {
             playClickSound(300, 0.08);
             nfbOn = !nfbOn;
-            const el = document.getElementById('nfb-device'); const txt = document.getElementById('nfb-state-text');
-            if (nfbOn) { el.classList.add('on'); txt.innerText = '[ON]'; txt.style.color = '#00e676'; } 
-            else { el.classList.remove('on'); txt.innerText = '[OFF]'; txt.style.color = '#ff5252'; krSet = false; }
+            const el = document.getElementById('nfb-device');
+            const txt = document.getElementById('nfb-state-text');
+            if (nfbOn) {
+                el.classList.add('on');
+                txt.innerText = '[ON]';
+                txt.style.color = '#00e676';
+            } else {
+                el.classList.remove('on');
+                txt.innerText = '[OFF]';
+                txt.style.color = '#ff5252';
+                //krSet = false;
+            }
             evaluatePowerState();
         }
 
@@ -408,6 +448,7 @@
             if (emsTripped) {
                 btn.classList.add('tripped');
                 btn.innerText = 'EMS\n(TRIP)';
+                //setLamp('lamp-g', false);
             } else {
                 btn.classList.remove('tripped');
                 btn.innerText = 'EMS';
@@ -417,37 +458,82 @@
 
         function toggleTHRY() {
             thryTripped = !thryTripped;
-            const el = document.getElementById('thry-device'); const txt = document.getElementById('thry-state-text');
-            if (thryTripped) { txt.innerText = '[跳脫]'; txt.style.color = '#ffd700'; el.classList.add('bz-active'); startBuzzer(); krSet = false; } 
-            else { txt.innerText = '[正常]'; txt.style.color = '#fff'; el.classList.remove('bz-active'); stopBuzzer(); }
+            const el = document.getElementById('thry-device');
+            const txt = document.getElementById('thry-state-text');
+            if (thryTripped) {
+                txt.innerText = '[跳脫]';
+                txt.style.color = '#ffd700';
+                el.classList.add('bz-active');
+                //startBuzzer();
+            }
+            else {
+                txt.innerText = '[正常]';
+                txt.style.color = '#fff';
+                el.classList.remove('bz-active');
+                //stopBuzzer();
+            }
             evaluatePowerState();
         }
 
         // FWD 與 REV
         const fwdBtn = document.getElementById('btn-fwd');
-        fwdBtn.onmousedown = () => { fwdBtn.classList.add('pressed'); playClickSound(500, 0.04); if (!mcf & nfbOn && !emsTripped && tr3b && tr2b && !mcr && !thryTripped) { executeFWD(); updateCircuitState(); } };
+        // TODO: & bitwise and? Mistake?
+        fwdBtn.onmousedown = () => {
+            fwdBtn.classList.add('pressed');
+            playClickSound(500, 0.04);
+            if (!mcf & nfbOn && !emsTripped && tr3b && tr2b && !mcr && !thryTripped) {
+                executeFWD();
+                updateCircuitState();
+            }
+        };
+
         fwdBtn.onmouseup = fwdBtn.onmouseleave = () => fwdBtn.classList.remove('pressed');
 
         const revBtn = document.getElementById('btn-rev');
-        revBtn.onmousedown = () => { revBtn.classList.add('pressed'); playClickSound(500, 0.04); if (!mcr & nfbOn && !emsTripped && tr3b && tr2b && !mcf && !thryTripped) { executeREV(); updateCircuitState(); } };
+        revBtn.onmousedown = () => {
+            revBtn.classList.add('pressed');
+            playClickSound(500, 0.04);
+            if (!mcr & nfbOn && !emsTripped && tr3b && tr2b && !mcf && !thryTripped) {
+                executeREV();
+                updateCircuitState();
+            }
+        };
+
         revBtn.onmouseup = revBtn.onmouseleave = () => revBtn.classList.remove('pressed');
 
-        function executeFWD() { mcf = true; krSet = true; lastRunDirection = 'FWD'; playMcMagnetizeSound(); stopTimerCountdown('tr2'); startYDSequence(); }
+        function executeFWD() {
+            mcf = true;
+            krSet = true;
+            lastRunDirection = 'FWD';
+            playMcMagnetizeSound();
+            startYDSequence();
+        }
 
         function executeREV() {
             mcr = true;
             krSet = false;
             lastRunDirection = 'REV';
             playMcMagnetizeSound();
-            stopTimerCountdown('tr2');
             startYDSequence();
         }
 
         function startYDSequence() {
-            mcs = true; mcd = false; playMcMagnetizeSound();
-            startTimerCountdown('tr1', tr1Time, () => {
-                if (mcf || mcr) { mcs = false; mcd = true; playMcMagnetizeSound(); updateCircuitState(); }
-            });
+            mcs = true;
+            mcd = false;
+            playMcMagnetizeSound();
+            startTimerCountdown(
+                'tr1',
+                tr1Sec,
+                () => {
+                    if (mcf || mcr) {
+                        mcs = false;
+                        mcd = true;
+                        playMcMagnetizeSound();
+                        updateCircuitState();
+                    }
+                    stopTimerCountdown('tr2');
+                }
+            );
         }
 
         // OFF 按鈕 (Click & Hold)
@@ -486,13 +572,9 @@
             const setLamp = (id, lit) => { const el = document.getElementById(id); if (lit) el.classList.add('lit'); else el.classList.remove('lit'); };
             const mcfOrMcr = hasPower && (mcf || mcr);
             setLamp('lamp-r2', mcfOrMcr && !mcd );
-            //setLamp('lamp-r2', hasPower && (mcf || mcr) && !mcd );
             const starDeltaTransitionComplete = mcfOrMcr && mcd;
             setLamp('lamp-r1', starDeltaTransitionComplete && krSet );
-            //setLamp('lamp-r1', hasPower && (mcf || mcr) && mcd );
-            //setLamp('lamp-r1', mcfOrMcr && mcd );
             setLamp('lamp-r3', starDeltaTransitionComplete && (!krSet) );
-            //setLamp('lamp-r3', hasPower && mcd);
             setLamp('lamp-g', hasPower && !mcf && !mcr);
 
             // 馬達動畫與文字狀態
