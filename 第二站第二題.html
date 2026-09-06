@@ -62,7 +62,9 @@
         .tr-countdown-text { font-size: 10px; font-weight: bold; color: #0077cc; margin-top: 2px; }
         .comp-tr.running .tr-countdown-text { color: #d32f2f; }
 
+        /*
         .comp-tb1 { top: 20px; left: 30px; width: 90px; height: 45px; background: #333; color: #fff; }
+        */
         .comp-nfb { top: 80px; left: 30px; width: 60px; height: 85px; background: #222; color: #fff; cursor: pointer; transition: all 0.2s; }
         .comp-nfb.on { border-color: var(--accent-green); box-shadow: 0 0 10px rgba(0,230,118,0.5); }
         .comp-df1 { top: 90px; left: 105px; width: 35px; height: 35px; border-radius: 50%; background: #e74c3c; color: white; line-height: 35px; text-align: center; font-size: 11px; }
@@ -83,10 +85,12 @@
         .comp-mcd  { top: 390px; left: 120px; width: 80px; height: 110px; background: #444; color: white; }
         .comp-mcs  { top: 390px; left: 210px; width: 80px; height: 110px; background: #444; color: white; }
 
+        /*
         .comp-tb2 { top: 570px; left: 40px; width: 180px; height: 35px; background: #333; color: #fff; }
         .comp-tb3 { top: 120px; right: 20px; width: 45px; height: 380px; background: #333; color: #fff; writing-mode: vertical-lr; text-align: center; letter-spacing: 5px; }
 
         .ground-terminal { position: absolute; bottom: 60px; right: 130px; display: flex; gap: 4px; }
+        */
         .g-dot { width: 10px; height: 10px; border-radius: 50%; background: #ffd700; border: 1px solid #000; }
 
         .mc-status { width: 20px; height: 20px; background: #222; border-radius: 3px; margin-top: 6px; transition: background 0.1s; box-shadow: inset 0 0 5px #000; }
@@ -113,14 +117,54 @@
         .lamp-green.lit { background: radial-gradient(circle at 30% 30%, #b3ffda, #00ff66); box-shadow: 0 0 18px #00ff66; }
         .lamp-r1 { top: 220px; left: 95px; } .lamp-r2 { top: 220px; left: 150px; } .lamp-r3 { top: 220px; left: 205px; } .lamp-g  { top: 220px; left: 260px; }
 
+        /*
         .btn { width: 50px; height: 50px; border: 3px solid #111; color: white; font-size: 11px; text-align: center; }
         .btn-ems { top: 345px; left: 90px; background: radial-gradient(circle at 30% 30%, #e74c3c, #900); border-radius: 50%; width: 54px; height: 54px; font-size: 10px; transition: all 0.2s; }
         .btn-ems.tripped { border-color: #ff5252; box-shadow: 0 0 15px #ff5252; }
         .btn-fwd { top: 345px; left: 150px; background: radial-gradient(circle at 30% 30%, #555, #222); }
         .btn-rev { top: 345px; left: 205px; background: radial-gradient(circle at 30% 30%, #555, #222); }
         .btn-off { top: 345px; left: 260px; background: radial-gradient(circle at 30% 30%, #e67e22, #a04000); }
+         */
 
+        .btn {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #111;
+            color: white;
+            font-size: 11px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .btn-ems {
+            top: 345px;
+            left: 90px;
+            background: radial-gradient(circle at 30% 30%, #e74c3c, #900);
+            border-radius: 50%;
+            width: 54px;
+            height: 54px;
+            font-size: 10px;
+        }
+        .btn-fwd { top: 345px; left: 150px; background: radial-gradient(circle at 30% 30%, #555, #222); }
+        .btn-rev { top: 345px; left: 205px; background: radial-gradient(circle at 30% 30%, #555, #222); }
+        .btn-off { top: 345px; left: 260px; background: radial-gradient(circle at 30% 30%, #e67e22, #a04000); }
+        .btn-ems.tripped {
+            border-color: #ff5252;
+            box-shadow: 0 0 15px #ff5252;
+        }
+        /* same behavior for both FWD and REV button when hold down */
+        .btn-fwd.down,
+        .btn-rev.down {
+            border-color: #4caf50;
+            box-shadow: 0 0 15px #4caf50;
+        }
+        .btn-off.down {
+            border-color: #ffb300;
+            box-shadow: 0 0 15px #ffb300;
+        }
+
+        /*
         .comp-tb4 { top: 180px; right: 15px; width: 35px; height: 300px; border: 2px dashed #888; background: rgba(0,0,0,0.2); color: #aaa; writing-mode: vertical-lr; text-align: center; letter-spacing: 4px; }
+        */
 
         /* 馬達與控制面板區 */
         .bottom-container { display: flex; gap: 20px; width: 100%; max-width: 930px; margin-top: 20px; flex-wrap: wrap; }
@@ -164,7 +208,7 @@
             <div class="appliance-board">
                 <div class="duct duct-h1"></div><div class="duct duct-h2"></div><div class="duct duct-h3"></div><div class="duct duct-v"></div>
 
-                <div class="comp comp-tb1">TB1</div>
+                <!--<div class="comp comp-tb1">TB1</div>-->
                 <div class="comp comp-nfb" id="nfb-device" onclick="toggleNFB()">
                     <span>NFB</span><span id="nfb-state-text" style="font-size:10px; color:#ff5252;">[OFF]</span>
                     <div class="tooltip">點擊開關無熔絲開關電源</div>
@@ -196,9 +240,9 @@
                 <div class="comp comp-mcd">MCD<div class="mc-status" id="st-mcd"></div></div>
                 <div class="comp comp-mcs">MCS<div class="mc-status" id="st-mcs"></div></div>
 
-                <div class="comp comp-tb2">TB2 (馬達接線端子)</div>
-                <div class="comp comp-tb3">TB3 端子台</div>
-                <div class="ground-terminal"><div class="g-dot"></div><div class="g-dot"></div><div class="g-dot"></div><span style="font-size:10px; color:#333; font-weight:bold;">G</span></div>
+                <!--<div class="comp comp-tb2">TB2 (馬達接線端子)</div>-->
+                <!--<div class="comp comp-tb3">TB3 端子台</div>-->
+                <!--<div class="ground-terminal"><div class="g-dot"></div><div class="g-dot"></div><div class="g-dot"></div><span style="font-size:10px; color:#333; font-weight:bold;">G</span></div>-->
             </div>
         </div>
 
@@ -218,9 +262,9 @@
                 <div class="panel-device btn btn-ems" id="btn-ems" onclick="toggleEMS()">EMS<div class="tooltip">單擊切換 (Toggle) 跳脫/復歸</div></div>
                 <div class="panel-device btn btn-fwd" id="btn-fwd">FWD<div class="tooltip">正轉啟動 (PB1)</div></div>
                 <div class="panel-device btn btn-rev" id="btn-rev">REV<div class="tooltip">反轉啟動 (PB2)</div></div>
-                <div class="panel-device btn btn-off" id="btn-off">OFF<div class="tooltip">按住模擬瞬停，點擊即可停止</div></div>
+                <div class="panel-device btn btn-off" id="btn-off" onclick="toggleOFF()">OFF</div>
 
-                <div class="comp-tb4">TB4 控制線接線端子</div>
+                <!--<div class="comp-tb4">TB4 控制線接線端子</div>-->
             </div>
         </div>
     </div>
@@ -285,7 +329,10 @@
         let nfbOn = false;
         let thryTripped = false;
         let emsTripped = false;
-        let offPressed = false;
+        //let offPressed = false;
+        let off = false;
+        let fwd = false;
+        let rev = false;
         let isPowerActive = false;
         //let numSecPowerLoss = Infinity;
         let tsStartPowerLoss;
@@ -301,9 +348,12 @@
         let tr1Sec = 2.5;
         let tr2Sec = 5.0;
         let tr3Sec = 10.0;
+        let tr2 = true;
+        let tr3 = true;
         let tr3b = true;
         let tr2b = true;
         let tr2_legs_08_06 = false;
+        let tr3_legs_08_05 = true;
         let trIntervals = { tr1: null, tr2: null, tr3: null };
 
         function updateTimerVal(trKey, val) {
@@ -325,7 +375,6 @@
                 isPowerActive = true;
                 handlePowerRestore();
             } else if (!currentPower && isPowerActive) {
-                // 從有電變為斷電
                 isPowerActive = false;
                 handlePowerLoss();
             }
@@ -355,29 +404,30 @@
         }
 
         function handlePowerRestore() {
-            // Need a global variable, the time elapsed btw handlePowerLoss() and handlePowerRestore()?
+            if (off) {
+                tr3 = true;
+                tr3_legs_08_05 = false;
+                return ;
+            }
 
-            // 復電時，停止 TR3 倒數
-            //stopTimerCountdown('tr3');
-
-            const tsEndPowerLoss = Date.now();
-            const msPowerLoss = tsEndPowerLoss - tsStartPowerLoss;
-            const secPowerLoss = msPowerLoss / 1000;
-            //console.log({ tsStartPowerLoss });
-            //console.log({ tsEndPowerLoss });
-            //console.log({ msPowerLoss });
-            //console.log({ secPowerLoss });
-            //console.log({ tr2Sec });
-            if (secPowerLoss < tr2Sec) {
-                if (tr2_legs_08_06) {
-                    if (krSet) {
-                        executeFWD();
-                    } else {
-                        executeREV();
+            if (tr3_legs_08_05) {
+                const tsEndPowerLoss = Date.now();
+                const msPowerLoss = tsEndPowerLoss - tsStartPowerLoss;
+                const secPowerLoss = msPowerLoss / 1000;
+                //console.log({ tsStartPowerLoss });
+                if (secPowerLoss < tr2Sec) {
+                    if (tr2_legs_08_06) {
+                        if (krSet) {
+                            executeFWD();
+                        } else {
+                            executeREV();
+                        }
                     }
+                } else {
+                    tr2_legs_08_06 = false;
+                    tr2_legs_08_05 = true;
+                    if (fwd) executeFWD(); else if (rev) executeREV();
                 }
-            } else {
-                tr2_legs_08_06 = false;
             }
         }
 
@@ -436,7 +486,6 @@
                 el.classList.remove('on');
                 txt.innerText = '[OFF]';
                 txt.style.color = '#ff5252';
-                //krSet = false;
             }
             evaluatePowerState();
         }
@@ -447,8 +496,7 @@
             const btn = document.getElementById('btn-ems');
             if (emsTripped) {
                 btn.classList.add('tripped');
-                btn.innerText = 'EMS\n(TRIP)';
-                //setLamp('lamp-g', false);
+                btn.innerText = 'EMS\n(Trip)';
             } else {
                 btn.classList.remove('tripped');
                 btn.innerText = 'EMS';
@@ -537,24 +585,74 @@
         }
 
         // OFF 按鈕 (Click & Hold)
-        const offBtn = document.getElementById('btn-off');
-        offBtn.onmousedown = () => {
-            playClickSound(500, 0.04);
-            offBtn.classList.add('pressed');
-            offPressed = true;
-            evaluatePowerState();
-        };
-        const releaseOff = () => {
-            if (offPressed) {
-                offBtn.classList.remove('pressed');
-                offPressed = false;
-                evaluatePowerState();
+        function toggleOFF() {
+            playClickSound(400, 0.05);
+            off = !off;
+            const btn = document.getElementById('btn-off');
+            const currentPower = nfbOn && !thryTripped && !emsTripped;
+            if (off) {
+                btn.classList.add('down');
+                btn.innerText = 'OFF\n(Down)';
+                if (currentPower) {
+                    if (mcd) {
+                        tr2 = false;
+                        startTimerCountdown(
+                            'tr2',
+                            tr2Sec,
+                            () =>  {
+                                updateCircuitState();
+                                tr2_legs_08_05 = true;
+                                tr2_legs_08_06 = false;
+                            }
+                        );
+                    }
+                    tr3 = true;
+                    tr3_legs_08_05 = false;
+                    mcf = mcr = mcs = mcd = false;
+                    stopTimerCountdown('tr1');
+                    isPowerActive = false
+                }
+                updateCircuitState();
+            } else {
+                btn.classList.remove('down');
+                btn.innerText = 'OFF';
+                if (currentPower) {
+                    if (mcd) {
+                        tr2 = true;
+                        tr2_legs_08_05 = false;
+                        tr2_legs_08_06 = true;
+                    }
+                    tr3 = false;
+                    startTimerCountdown(
+                        'tr3',
+                        tr3Sec,
+                        () =>  {
+                            updateCircuitState();
+                            tr3_legs_08_05 = true;
+                        }
+                    );
+                }
             }
-        };
-        offBtn.onmouseup = releaseOff;
-        offBtn.onmouseleave = releaseOff;
-        offBtn.ontouchstart = (e) => { e.preventDefault(); offBtn.onmousedown(); };
-        offBtn.ontouchend = (e) => { e.preventDefault(); releaseOff(); };
+        }
+
+        //const offBtn = document.getElementById('btn-off');
+        //offBtn.onmousedown = () => {
+        //    playClickSound(500, 0.04);
+        //    offBtn.classList.add('pressed');
+        //    offPressed = true;
+        //    evaluatePowerState();
+        //};
+        //const releaseOff = () => {
+        //    if (offPressed) {
+        //        offBtn.classList.remove('pressed');
+        //        offPressed = false;
+        //        evaluatePowerState();
+        //    }
+        //};
+        //offBtn.onmouseup = releaseOff;
+        //offBtn.onmouseleave = releaseOff;
+        //offBtn.ontouchstart = (e) => { e.preventDefault(); offBtn.onmousedown(); };
+        //offBtn.ontouchend = (e) => { e.preventDefault(); releaseOff(); };
 
         // --- 介面更新 ---
         function updateCircuitState() {
@@ -595,8 +693,8 @@
                 badge.className = 'status-badge bg-off'; badge.innerText = '停止 (OFF)';
             }
 
-            if (mcs) { conn.innerText = '結線狀態: Y 啟動中 (星形降壓)'; conn.style.color = '#ffd700'; } 
-            else if (mcd) { conn.innerText = '結線狀態: Δ 全壓運轉中 (三角形)'; conn.style.color = '#00e676'; } 
+            if (mcs) { conn.innerText = '結線狀態: Y 啟動中 (星形降壓)'; conn.style.color = '#ffd700'; }
+            else if (mcd) { conn.innerText = '結線狀態: Δ 全壓運轉中 (三角形)'; conn.style.color = '#00e676'; }
             else { conn.innerText = '結線狀態: 無供電 / 停止'; conn.style.color = '#888'; }
         }
 
