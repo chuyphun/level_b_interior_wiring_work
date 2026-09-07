@@ -256,12 +256,14 @@
                 <div class="panel-device lamp lamp-red lamp-r1" id="lamp-r1">R1<div class="tooltip">R1: 正轉運轉燈</div></div>
                 <div class="panel-device lamp lamp-red lamp-r2" id="lamp-r2">R2<div class="tooltip">R2: 反轉運轉燈</div></div>
                 <div class="panel-device lamp lamp-red lamp-r3" id="lamp-r3">R3<div class="tooltip">R3: Δ運轉指示燈</div></div>
-                <div class="panel-device lamp lamp-green lamp-g" id="lamp-g">G<div class="tooltip">G: 停止指示燈</div></div>
+                <div class="panel-device lamp lamp-green lamp-g" id="lamp-g">G
+                    <div class="tooltip">G: 馬達停止指示燈</div>
+                </div>
 
                 <!-- 按鈕區 -->
                 <div class="panel-device btn btn-ems" id="btn-ems" onclick="toggleEMS()">EMS<div class="tooltip">單擊切換 (Toggle) 跳脫/復歸</div></div>
-                <div class="panel-device btn btn-fwd" id="btn-fwd">FWD<div class="tooltip">正轉啟動 (PB1)</div></div>
-                <div class="panel-device btn btn-rev" id="btn-rev">REV<div class="tooltip">反轉啟動 (PB2)</div></div>
+                <div class="panel-device btn btn-fwd" id="btn-fwd" onclick="toggleFWD()">FWD<div class="tooltip">正轉啟動</div></div>
+                <div class="panel-device btn btn-rev" id="btn-rev" onclick="toggleREV()">REV<div class="tooltip">反轉啟動</div></div>
                 <div class="panel-device btn btn-off" id="btn-off" onclick="toggleOFF()">OFF</div>
 
                 <!--<div class="comp-tb4">TB4 控制線接線端子</div>-->
@@ -330,9 +332,9 @@
         let thryTripped = false;
         let emsTripped = false;
         //let offPressed = false;
-        let off = false;
-        let fwd = false;
-        let rev = false;
+        let offDown = false;
+        let fwdDown = false;
+        let revDown = false;
         let isPowerActive = false;
         //let numSecPowerLoss = Infinity;
         let tsStartPowerLoss;
@@ -385,15 +387,28 @@
             //const start = performance.now();
             tsStartPowerLoss = Date.now();
             // What if user press and hold OFF right before blackout?
-            if (mcd) {
+            if (offDown) {
+                tr3 = false;
                 startTimerCountdown(
-                    'tr2',
-                    tr2Sec,
+                    'tr3',
+                    tr3Sec,
                     () =>  {
+                        tr3_legs_08_05 = true;
                         updateCircuitState();
                     }
                 );
-                tr2_legs_08_06 = true;
+            } else {
+                if (mcd) {
+                    startTimerCountdown(
+                        'tr2',
+                        tr2Sec,
+                        () =>  {
+                            tr2_legs_08_06 = false;
+                            updateCircuitState();
+                        }
+                    );
+                    tr2_legs_08_06 = true;
+                }
             }
 
             if (mcs) {
@@ -404,29 +419,45 @@
         }
 
         function handlePowerRestore() {
-            if (off) {
+            if (offDown) {
                 tr3 = true;
                 tr3_legs_08_05 = false;
+                stopTimerCountdown('tr3');
                 return ;
             }
 
+            //if (tr3_legs_08_05) {
+            //    //if (tr2_legs_08_05) {
+            //    //} else {
+            //    //}
+            //    const tsEndPowerLoss = Date.now();
+            //    const msPowerLoss = tsEndPowerLoss - tsStartPowerLoss;
+            //    const secPowerLoss = msPowerLoss / 1000;
+            //    console.log({ secPowerLoss });
+            //    if (secPowerLoss < tr2Sec) {
+            //        if (tr2_legs_08_06) {
+            //            if (krSet) {
+            //                executeFWD();
+            //            } else {
+            //                executeREV();
+            //            }
+            //        }
+            //    } else {
+            //        //tr2_legs_08_06 = false;
+            //        //tr2_legs_08_05 = true;
+            //        if (fwd) executeFWD(); else if (rev) executeREV();
+            //    }
+            //}
+
             if (tr3_legs_08_05) {
-                const tsEndPowerLoss = Date.now();
-                const msPowerLoss = tsEndPowerLoss - tsStartPowerLoss;
-                const secPowerLoss = msPowerLoss / 1000;
-                //console.log({ tsStartPowerLoss });
-                if (secPowerLoss < tr2Sec) {
-                    if (tr2_legs_08_06) {
-                        if (krSet) {
-                            executeFWD();
-                        } else {
-                            executeREV();
-                        }
+                if (tr2_legs_08_06) {
+                    if (krSet) {
+                        executeFWD();
+                    } else {
+                        executeREV();
                     }
                 } else {
-                    tr2_legs_08_06 = false;
-                    tr2_legs_08_05 = true;
-                    if (fwd) executeFWD(); else if (rev) executeREV();
+                    if (fwdDown) executeFWD(); else if (revDown) executeREV();
                 }
             }
         }
@@ -523,31 +554,44 @@
             evaluatePowerState();
         }
 
-        // FWD 與 REV
-        const fwdBtn = document.getElementById('btn-fwd');
-        // TODO: & bitwise and? Mistake?
-        fwdBtn.onmousedown = () => {
-            fwdBtn.classList.add('pressed');
+        function toggleFWD() {
+            //playClickSound(400, 0.05);
             playClickSound(500, 0.04);
-            if (!mcf & nfbOn && !emsTripped && tr3b && tr2b && !mcr && !thryTripped) {
-                executeFWD();
-                updateCircuitState();
+            fwdDown = !fwdDown;
+            const btn = document.getElementById('btn-fwd');
+            const currentPower = nfbOn && !thryTripped && !emsTripped;
+            if (fwdDown) {
+                btn.classList.add('down');
+                btn.innerText = 'FWD\n(Down)';
+                //if (nfbOn && !emsTripped && !thryTripped && tr3_legs_08_05 && tr2_legs_08_05 && !mcf) {
+                if (currentPower && tr3_legs_08_05 && !tr2_legs_08_06 && !mcr && !mcf) {
+                    executeFWD();
+                    updateCircuitState();
+                }
+            } else {
+                btn.classList.remove('down');
+                btn.innerText = 'FWD';
             }
-        };
+        }
 
-        fwdBtn.onmouseup = fwdBtn.onmouseleave = () => fwdBtn.classList.remove('pressed');
-
-        const revBtn = document.getElementById('btn-rev');
-        revBtn.onmousedown = () => {
-            revBtn.classList.add('pressed');
+        function toggleREV() {
+            //playClickSound(400, 0.05);
             playClickSound(500, 0.04);
-            if (!mcr & nfbOn && !emsTripped && tr3b && tr2b && !mcf && !thryTripped) {
-                executeREV();
-                updateCircuitState();
+            revDown = !revDown;
+            const btn = document.getElementById('btn-rev');
+            const currentPower = nfbOn && !thryTripped && !emsTripped;
+            if (revDown) {
+                btn.classList.add('down');
+                btn.innerText = 'REV\n(Down)';
+                if (currentPower && tr3_legs_08_05 && !tr2_legs_08_06 && !mcf && !mcr) {
+                    executeREV();
+                    updateCircuitState();
+                }
+            } else {
+                btn.classList.remove('down');
+                btn.innerText = 'REV';
             }
-        };
-
-        revBtn.onmouseup = revBtn.onmouseleave = () => revBtn.classList.remove('pressed');
+        }
 
         function executeFWD() {
             mcf = true;
@@ -587,10 +631,10 @@
         // OFF 按鈕 (Click & Hold)
         function toggleOFF() {
             playClickSound(400, 0.05);
-            off = !off;
+            offDown = !offDown;
             const btn = document.getElementById('btn-off');
             const currentPower = nfbOn && !thryTripped && !emsTripped;
-            if (off) {
+            if (offDown) {
                 btn.classList.add('down');
                 btn.innerText = 'OFF\n(Down)';
                 if (currentPower) {
@@ -601,12 +645,13 @@
                             tr2Sec,
                             () =>  {
                                 updateCircuitState();
-                                tr2_legs_08_05 = true;
+                                //tr2_legs_08_05 = true;
                                 tr2_legs_08_06 = false;
                             }
                         );
                     }
                     tr3 = true;
+                    stopTimerCountdown('tr3');
                     tr3_legs_08_05 = false;
                     mcf = mcr = mcs = mcd = false;
                     stopTimerCountdown('tr1');
@@ -619,7 +664,7 @@
                 if (currentPower) {
                     if (mcd) {
                         tr2 = true;
-                        tr2_legs_08_05 = false;
+                        //tr2_legs_08_05 = false;
                         tr2_legs_08_06 = true;
                     }
                     tr3 = false;
@@ -668,12 +713,12 @@
             // 面板指示燈
             const hasPower = isPowerActive;
             const setLamp = (id, lit) => { const el = document.getElementById(id); if (lit) el.classList.add('lit'); else el.classList.remove('lit'); };
+            setLamp('lamp-g', nfbOn && !emsTripped && !mcf && !mcr);
             const mcfOrMcr = hasPower && (mcf || mcr);
             setLamp('lamp-r2', mcfOrMcr && !mcd );
             const starDeltaTransitionComplete = mcfOrMcr && mcd;
             setLamp('lamp-r1', starDeltaTransitionComplete && krSet );
             setLamp('lamp-r3', starDeltaTransitionComplete && (!krSet) );
-            setLamp('lamp-g', hasPower && !mcf && !mcr);
 
             // 馬達動畫與文字狀態
             const shaft = document.getElementById('motor-shaft');
