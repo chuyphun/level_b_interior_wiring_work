@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>第二站第二題：電動機正反轉兼Y-Δ啟動附瞬時停電保護控制電路 互動模擬 (改進版)</title>
+    <title>第二站第二題: 電動機正反轉兼 Y-Δ 啟動附瞬時停電保護控制電路改進版)</title>
     <style>
         :root {
             --bg-color: #1e1e2e;
@@ -199,7 +199,7 @@
 <body>
 
     <h1>第二站第二題：電動機正反轉兼Y-Δ啟動附瞬時停電保護控制電路</h1>
-    <div class="subtitle">改進版：支援 EMS Toggle 切換、OFF 按鈕 Click & Hold 模擬瞬停及 TR2/TR3 視覺連動</div>
+    <!--<div class="subtitle">改進版：支援 EMS Toggle 切換、OFF 按鈕 Click & Hold 模擬瞬停及 TR2/TR3 視覺連動</div>-->
 
     <div class="main-container">
         <!-- 左側：器具板 -->
@@ -250,8 +250,8 @@
         <div class="board-card">
             <div class="board-title">操作面板 (正視圖)</div>
             <div class="control-panel">
-                <div class="panel-duct-h"></div><div class="panel-duct-v"></div><div class="panel-duct-b"></div>
-                <div class="digital-counter"><div class="counter-wheel">0</div><div class="counter-wheel">0</div><div class="counter-wheel">1</div></div>
+                <!--<div class="panel-duct-h"></div><div class="panel-duct-v"></div><div class="panel-duct-b"></div>-->
+                <!--<div class="digital-counter"><div class="counter-wheel">0</div><div class="counter-wheel">0</div><div class="counter-wheel">1</div></div>-->
 
                 <div class="panel-device lamp lamp-red lamp-r1" id="lamp-r1">R1<div class="tooltip">R1: 正轉運轉燈</div></div>
                 <div class="panel-device lamp lamp-red lamp-r2" id="lamp-r2">R2<div class="tooltip">R2: 反轉運轉燈</div></div>
@@ -261,10 +261,10 @@
                 </div>
 
                 <!-- 按鈕區 -->
-                <div class="panel-device btn btn-ems" id="btn-ems" onclick="toggleEMS()">EMS<div class="tooltip">單擊切換 (Toggle) 跳脫/復歸</div></div>
-                <div class="panel-device btn btn-fwd" id="btn-fwd" onclick="toggleFWD()">FWD<div class="tooltip">正轉啟動</div></div>
-                <div class="panel-device btn btn-rev" id="btn-rev" onclick="toggleREV()">REV<div class="tooltip">反轉啟動</div></div>
-                <div class="panel-device btn btn-off" id="btn-off" onclick="toggleOFF()">OFF</div>
+                <div class="panel-device btn btn-ems" id="btn-ems" onclick="toggleEMS()">EMS<div class="tooltip">緊急 (斷路) 開關</div></div>
+                <div class="panel-device btn btn-fwd" id="btn-fwd" onclick="toggleFWD()">FWD<div class="tooltip">正轉 (馬達)</div></div>
+                <div class="panel-device btn btn-rev" id="btn-rev" onclick="toggleREV()">REV<div class="tooltip">反轉 (馬達)</div></div>
+                <div class="panel-device btn btn-off" id="btn-off" onclick="toggleOFF()">OFF<div class="tooltip">OFF 按鈕 (馬達)</div></div>
 
                 <!--<div class="comp-tb4">TB4 控制線接線端子</div>-->
             </div>
@@ -307,6 +307,7 @@
         </div>
     </div>
 
+    <!--
     <div class="controls-info">
         <strong>💡 改進操作說明：</strong><br>
         1. <strong>EMS (Toggle)：</strong> 點擊一次鎖定為跳脫狀態，外框發紅；再點擊一次復歸。<br>
@@ -314,6 +315,7 @@
         3. <strong>復電重啟邏輯：</strong> 若斷電時間 <strong>小於 TR3</strong> 放開按鈕，<strong>TR2</strong> 將接續倒數，完畢後依記憶方向自動重啟。若超過 TR3 才放開，KR 會被重置不再重啟。<br>
         4. <strong>KR 指示燈：</strong> KR 繼電器上方有藍色燈號，亮起代表正在記憶「運轉狀態 (SET)」。
     </div>
+    -->
 
     <script>
         // 音效模組 (保持原樣)
