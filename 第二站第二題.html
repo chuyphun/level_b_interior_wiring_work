@@ -194,6 +194,82 @@
 
         .tooltip { position: absolute; bottom: -25px; font-size: 10px; background: rgba(0,0,0,0.8); color: #fff; padding: 2px 6px; border-radius: 3px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 10; }
         *:hover > .tooltip { opacity: 1; }
+
+        /* =========================================
+                   Responsive Adjustments for Mobile & Tablet
+        ========================================= */
+
+        /* Tablet View */
+        @media (max-width: 1100px) {
+            .appliance-board {
+                transform: scale(0.85);
+                transform-origin: top center;
+                margin-bottom: -97px; /* Adjusts layout gap: 650px * (1 - 0.85) */
+            }
+            .control-panel {
+                transform: scale(0.85);
+                transform-origin: top center;
+                margin-bottom: -97px;
+            }
+        }
+
+        /* Mobile Phone View */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .main-container {
+                gap: 15px;
+            }
+
+            .board-card {
+                width: 100%;
+                padding: 10px;
+                overflow-x: auto; /* Allows safe horizontal panning if needed */
+            }
+
+            /* Scale down the appliance board further for phones */
+            .appliance-board {
+                transform: scale(0.65);
+                transform-origin: top center;
+                margin-bottom: -227px; /* 650px * (1 - 0.65) */
+            }
+
+            /* Scale down the control panel */
+            .control-panel {
+                transform: scale(0.75);
+                transform-origin: top center;
+                margin-bottom: -162px; /* 650px * (1 - 0.75) */
+            }
+
+            /* Fix bottom cards overflowing */
+            .bottom-container {
+                gap: 15px;
+            }
+
+            .motor-card, .timer-config-card {
+                min-width: 100%; /* Overrides the hardcoded 380px */
+            }
+
+            /* Stack the motor visual elements vertically on small screens */
+            .motor-visual {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+
+            .timer-row {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .timer-row label {
+                width: 100%;
+            }
+        }
+
+
     </style>
 </head>
 <body>
