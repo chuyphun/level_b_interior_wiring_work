@@ -496,36 +496,36 @@
             mcf = mcr = mcd = mcs = false;
         }
 
-        function handlePowerRestore() {
+        const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        const msTrSlowerThanMC = 10;
+
+        async function handlePowerRestore() {
             if (offDown) {
+                if (tr3_legs_08_05) {
+                    if (fwdDown) {
+                        mcf = true;
+                        krSet = true;
+                        lastRunDirection = 'FWD';
+                        playMcMagnetizeSound();
+                        updateCircuitState();
+                        await sleep(msTrSlowerThanMC);
+                        mcf = false;
+                    } else if (revDown) {
+                        mcr = true;
+                        krSet = false;
+                        lastRunDirection = 'REV';
+                        playMcMagnetizeSound();
+                        updateCircuitState();
+                        await sleep(msTrSlowerThanMC);
+                        mcr = false;
+                    }
+                }
                 tr3 = true;
                 tr3_legs_08_05 = false;
                 stopTimerCountdown('tr3');
+                updateCircuitState();
                 return ;
             }
-
-            //if (tr3_legs_08_05) {
-            //    //if (tr2_legs_08_05) {
-            //    //} else {
-            //    //}
-            //    const tsEndPowerLoss = Date.now();
-            //    const msPowerLoss = tsEndPowerLoss - tsStartPowerLoss;
-            //    const secPowerLoss = msPowerLoss / 1000;
-            //    console.log({ secPowerLoss });
-            //    if (secPowerLoss < tr2Sec) {
-            //        if (tr2_legs_08_06) {
-            //            if (krSet) {
-            //                executeFWD();
-            //            } else {
-            //                executeREV();
-            //            }
-            //        }
-            //    } else {
-            //        //tr2_legs_08_06 = false;
-            //        //tr2_legs_08_05 = true;
-            //        if (fwd) executeFWD(); else if (rev) executeREV();
-            //    }
-            //}
 
             if (tr3_legs_08_05) {
                 if (tr2_legs_08_06) {
@@ -757,25 +757,6 @@
                 }
             }
         }
-
-        //const offBtn = document.getElementById('btn-off');
-        //offBtn.onmousedown = () => {
-        //    playClickSound(500, 0.04);
-        //    offBtn.classList.add('pressed');
-        //    offPressed = true;
-        //    evaluatePowerState();
-        //};
-        //const releaseOff = () => {
-        //    if (offPressed) {
-        //        offBtn.classList.remove('pressed');
-        //        offPressed = false;
-        //        evaluatePowerState();
-        //    }
-        //};
-        //offBtn.onmouseup = releaseOff;
-        //offBtn.onmouseleave = releaseOff;
-        //offBtn.ontouchstart = (e) => { e.preventDefault(); offBtn.onmousedown(); };
-        //offBtn.ontouchend = (e) => { e.preventDefault(); releaseOff(); };
 
         // --- 介面更新 ---
         function updateCircuitState() {
