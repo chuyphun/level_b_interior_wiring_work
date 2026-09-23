@@ -1,0 +1,6 @@
+- New feature
+    - 時間停止按鈕/開關 (目的在於讓 user 可以同時按下很多設備)
+- Power restore
+    - [ ] Even if TR2 switch back after time off, if user has FWD/REV button pressed down, MCF/MCR should run as well!
+- Refactorization
+    - 4-indent to 2-indent
